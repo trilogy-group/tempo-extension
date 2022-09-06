@@ -6,7 +6,11 @@
   "permissions": [
     "alarms",
     "notifications",
-    "storage"
+    "storage",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://app.alp-pulse.com/"
   ],
   "background": {
     "service_worker": "background.js"
