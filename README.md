@@ -1,4 +1,4 @@
-# <img src="public/icons/icon_48.png" width="45" align="left"> Tempo SLA notification chrome extension
+# Tempo SLA notification chrome extension
 
 This is basic Chrome extension for [Tempo](https://app.alp-pulse.com/) which will make a notification on SLA timeout.
 
