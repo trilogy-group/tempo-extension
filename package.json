@@ -9,7 +9,7 @@
     "format": "prettier --write --ignore-unknown \"{config,public,src}/**/*.{html,css,js,ts,json}\""
   },
   "devDependencies": {
-    "@types/chrome": "^0.0.181",
+    "@types/chrome": "^0.0.196",
     "copy-webpack-plugin": "^10.2.4",
     "css-loader": "^6.7.1",
     "file-loader": "^6.2.0",
@@ -20,5 +20,8 @@
     "webpack": "^5.74.0",
     "webpack-cli": "^4.10.0",
     "webpack-merge": "^5.8.0"
+  },
+  "dependencies": {
+    "ts-is-present": "^1.2.2"
   }
 }

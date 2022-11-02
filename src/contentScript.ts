@@ -1,29 +1,25 @@
-'use strict';
-
-// Content script file will run in the context of web page.
-// With content script you can manipulate the web pages using
-// Document Object Model (DOM).
-// You can also pass information to the parent extension.
-
-// We execute this script by making an entry in manifest.json file
-// under `content_scripts` property
-
+import { isPresent } from 'ts-is-present';
+import { SlaEventType } from './models';
 // For more information on Content Scripts,
 // See https://developer.chrome.com/extensions/content_scripts
 
-// Log `title` of current active web page
 const pageTitle: string =
   document.head.getElementsByTagName('title')[0].innerHTML;
 console.log(
   `Page title is: '${pageTitle}' - evaluated by Chrome extension's 'contentScript.js' file`
 );
 
+const slaSelector = document.querySelector("#__next > div > div.overflow-y-auto.false.w-full > div > div > div > div.flex.flex-col.gap-y-8.py-5 > div.flex.justify-center.items-center.py-11.px-0.h-\\[240px\\].rounded-lg.bg-white.rounded-lg.shadow-lg.p-3.w-full > div.flex.relative.justify-center.items-center.w-full.h-full.false > div > div > div > div > div > div > div > span.break-words.undefined.text-lg.font-medium.text-black");
+const slaText = slaSelector?.textContent;
+
+if(isPresent(slaText)) {
+}
 // Communicate with background file by sending a message
 chrome.runtime.sendMessage(
   {
-    type: 'GREETINGS',
+    type: isPresent(slaText) ? SlaEventType.New : SlaEventType.No,
     payload: {
-      message: 'Hello, my name is Con. I am from ContentScript.',
+      message: slaText,
     },
   },
   (response) => {
@@ -31,14 +27,3 @@ chrome.runtime.sendMessage(
   }
 );
 
-// Listen for message
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.type === 'COUNT') {
-    console.log(`Current count is ${request.payload.count}`);
-  }
-
-  // Send an empty response
-  // See https://github.com/mozilla/webextension-polyfill/issues/130#issuecomment-531531890
-  sendResponse({});
-  return true;
-});

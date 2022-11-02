@@ -1,6 +1,7 @@
 'use strict';
 
 import './popup.css';
+import { SlaEvent } from './models';
 
 (function () {
   // We will make use of Storage API to get and store `count` value
@@ -11,12 +12,12 @@ import './popup.css';
   // More information on Permissions can we found at
   // https://developer.chrome.com/extensions/declare_permissions
   const counterStorage = {
-    get: (cb: (count: number) => void) => {
+    get: (cb: (count: string) => void) => {
       chrome.storage.sync.get(['count'], (result) => {
         cb(result.count);
       });
     },
-    set: (value: number, cb: () => void) => {
+    set: (value: string, cb: () => void) => {
       chrome.storage.sync.set(
         {
           count: value,
@@ -28,66 +29,39 @@ import './popup.css';
     },
   };
 
-  function setupCounter(initialValue = 0) {
+  function setupCounter(initialValue = 'n/a') {
     document.getElementById('counter')!.innerHTML = initialValue.toString();
 
-    document.getElementById('incrementBtn')!.addEventListener('click', () => {
-      updateCounter({
-        type: 'INCREMENT',
-      });
-    });
-
-    document.getElementById('decrementBtn')!.addEventListener('click', () => {
-      updateCounter({
-        type: 'DECREMENT',
-      });
-    });
+    // document.getElementById('incrementBtn')!.addEventListener('click', () => {
+    //   updateCounter({
+    //     type: 'INCREMENT',
+    //   });
+    // });
+    //
+    // document.getElementById('decrementBtn')!.addEventListener('click', () => {
+    //   updateCounter({
+    //     type: 'DECREMENT',
+    //   });
+    // });
   }
 
-  function updateCounter({ type }: { type: string }) {
-    counterStorage.get((count: number) => {
-      let newCount: number;
-
-      if (type === 'INCREMENT') {
-        newCount = count + 1;
-      } else if (type === 'DECREMENT') {
-        newCount = count - 1;
-      } else {
-        newCount = count;
-      }
+  function updateCounter(event: SlaEvent) {
+    counterStorage.get((count: string) => {
+      const newCount = count;
 
       counterStorage.set(newCount, () => {
         document.getElementById('counter')!.innerHTML = newCount.toString();
-
-        // Communicate with content script of
-        // active tab by sending a message
-        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-          const tab = tabs[0];
-
-          chrome.tabs.sendMessage(
-            tab.id!,
-            {
-              type: 'COUNT',
-              payload: {
-                count: newCount,
-              },
-            },
-            (response) => {
-              console.log('Current count value passed to contentScript file');
-            }
-          );
-        });
       });
     });
   }
 
   function restoreCounter() {
     // Restore count value
-    counterStorage.get((count: number) => {
+    counterStorage.get((count: string) => {
       if (typeof count === 'undefined') {
         // Set counter value as 0
-        counterStorage.set(0, () => {
-          setupCounter(0);
+        counterStorage.set('n/a', () => {
+          setupCounter();
         });
       } else {
         setupCounter(count);
@@ -98,15 +72,28 @@ import './popup.css';
   document.addEventListener('DOMContentLoaded', restoreCounter);
 
   // Communicate with background file by sending a message
-  chrome.runtime.sendMessage(
-    {
-      type: 'GREETINGS',
-      payload: {
-        message: 'Hello, my name is Pop. I am from Popup.',
-      },
-    },
-    (response) => {
-      console.log(response.message);
+  // chrome.runtime.sendMessage(
+  //   {
+  //     type: 'GREETINGS',
+  //     payload: {
+  //       message: 'Hello, my name is Pop. I am from Popup.',
+  //     },
+  //   },
+  //   (response) => {
+  //     console.log(response.message);
+  //   }
+  // );
+
+  // Listen for message
+  chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.type === 'new_sla') {
+      console.log(`Current SLA is ${request.payload.message}`);
+      updateCounter(request.payload.message)
     }
-  );
+
+    // Send an empty response
+    // See https://github.com/mozilla/webextension-polyfill/issues/130#issuecomment-531531890
+    sendResponse({});
+    return true;
+  });
 })();

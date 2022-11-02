@@ -20,14 +20,15 @@
     "alarms",
     "notifications",
     "storage",
-    "tabs"
+    "tabs",
+    "activeTab"
   ],
+  "host_permissions": [ "https://app.alp-pulse.com/" ],
   "content_scripts": [
     {
       "matches": [
         "https://app.alp-pulse.com/*"
       ],
-      "run_at": "document_idle",
       "js": [
         "contentScript.js"
       ]
