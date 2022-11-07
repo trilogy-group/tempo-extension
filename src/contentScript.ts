@@ -19,7 +19,9 @@ function loadSla() {
       type: isPresent(slaText) ? SlaEventType.New : SlaEventType.No,
       payload: {
         message: slaText
-          ?.replaceAll('0h', '')
+          ?.replaceAll('h', 'ₕ')
+          ?.replaceAll('m', 'ₘ')
+          ?.replaceAll('s', 'ₛ')
           ?.replaceAll(' ', ''),
       },
     },
