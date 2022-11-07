@@ -8,7 +8,7 @@ function loadSla() {
     `Page title is: '${pageTitle}' - evaluated by Chrome extension's 'contentScript.js' file`
   );
 
-  const slaSelector = document.querySelector("#__next > div > div.overflow-y-auto.false.w-full > div > div > div > div.flex.flex-col.gap-y-8.py-5 > div.flex.justify-center.items-center.py-11.px-0.h-\\[240px\\].rounded-lg.bg-white.rounded-lg.shadow-lg.p-3.w-full > div.flex.relative.justify-center.items-center.w-full.h-full.false > div > div > div > div > div > div > div > span.break-words.undefined.text-lg.font-medium.text-black");
+  const slaSelector = document.querySelector("#__next > div > div.overflow-y-auto.false.w-full > div > div > div > div.flex.flex-col.gap-y-8.py-5 > div.flex.justify-center.items-center.py-11.px-0.h-\\[240px\\].rounded-lg.bg-white.rounded-lg.shadow-lg.p-3.w-full > div.flex.relative.justify-center.items-center.w-full.h-full.false > div > div > div > div > div > div > div > span");
   const slaText = slaSelector?.textContent;
   console.log(
     `SLA is: '${slaText}'`
