@@ -32,24 +32,26 @@ function loadSla() {
     `SLA is: '${slaText}'`
   );
 
+  chrome.runtime.sendMessage(
+    {
+      type: isPresent(slaText) ? SlaEventType.New : SlaEventType.No,
+      payload: {
+        message: slaText
+          ?.replaceAll('0h', '')
+          ?.replaceAll(' ', ''),
+      },
+    },
+    (response) => {
+      console.log(`Response: ${response?.message}`);
+    }
+  );
   if (isPresent(slaText)) {
     // Communicate with background file by sending a message
-    chrome.runtime.sendMessage(
-      {
-        type: isPresent(slaText) ? SlaEventType.New : SlaEventType.No,
-        payload: {
-          message: slaText,
-        },
-      },
-      (response) => {
-        console.log(`Response: ${response?.message}`);
-      }
-    );
   }
 }
 
 $(() => {
-  loadSla();
+  // loadSla();
   $('body').on('DOMSubtreeModified', loadSla);
 });
 
