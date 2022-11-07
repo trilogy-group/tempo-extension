@@ -6,6 +6,9 @@
 // See https://developer.chrome.com/extensions/background_pages
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  // chrome.action.setBadgeText({
+  //   text: '12'
+  // });
   if (request.type === 'GREETINGS') {
     const message: string = `Hi ${
       sender.tab ? 'Con' : 'Pop'

@@ -11,6 +11,7 @@ import { SlaEvent } from './models';
   // To get storage access, we have to mention it in `permissions` property of manifest.json file
   // More information on Permissions can we found at
   // https://developer.chrome.com/extensions/declare_permissions
+
   const counterStorage = {
     get: (cb: (count: string) => void) => {
       chrome.storage.sync.get(['count'], (result) => {
@@ -31,6 +32,9 @@ import { SlaEvent } from './models';
 
   function setupCounter(initialValue = 'n/a') {
     document.getElementById('counter')!.innerHTML = initialValue.toString();
+    chrome.action.setBadgeText({
+      text: initialValue.toString()
+    });
 
     // document.getElementById('incrementBtn')!.addEventListener('click', () => {
     //   updateCounter({
@@ -47,10 +51,14 @@ import { SlaEvent } from './models';
 
   function updateCounter(event: SlaEvent) {
     counterStorage.get((count: string) => {
-      const newCount = count;
+      const newCount = count.toString();
+
+      chrome.action.setBadgeText({
+        text: newCount
+      });
 
       counterStorage.set(newCount, () => {
-        document.getElementById('counter')!.innerHTML = newCount.toString();
+        document.getElementById('counter')!.innerHTML = newCount;
       });
     });
   }
