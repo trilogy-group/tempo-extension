@@ -8,10 +8,18 @@ function loadSla() {
     `Page title is: '${pageTitle}' - evaluated by Chrome extension's 'contentScript.js' file`
   );
 
-  const slaColor = $("path.CircularProgressbar-path")?.css('stroke');
+  let slaColor;
+  let slaText;
+  const pullWork = $('button:contains("Pull Work")');
+  if(pullWork) {
+    slaText = 'pull';
+    slaColor = 'black'
+  } else {
+    slaColor = $("path.CircularProgressbar-path")?.css('stroke');
 
-  const slaSelector = document.querySelector("#__next > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > span");
-  const slaText = slaSelector?.textContent;
+    const slaSelector = document.querySelector("#__next > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > span");
+    slaText = slaSelector?.textContent;
+  }
   console.log(
     `SLA is: '${slaText} (${slaColor})'`
   );
