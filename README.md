@@ -2,6 +2,9 @@
 
 This is basic Chrome extension for [Tempo](https://app.alp-pulse.com/) which will make a notification on SLA timeout.
 
+![image](https://user-images.githubusercontent.com/37180625/200556507-e9a354a4-abe0-4d4f-b939-6e93696228cd.png)
+
+
 ## Build extension
 ```
 npm run build
