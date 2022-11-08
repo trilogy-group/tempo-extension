@@ -11,7 +11,7 @@ function loadSla() {
   let slaColor;
   let slaText;
   const pullWork = $('button:contains("Pull Work")');
-  if(pullWork) {
+  if(pullWork.length > 0) {
     slaText = 'pull';
     slaColor = 'black'
   } else {
