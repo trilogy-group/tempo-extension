@@ -4,6 +4,8 @@ This is basic Chrome extension for [Tempo](https://app.alp-pulse.com/) which wil
 
 ![image](https://user-images.githubusercontent.com/37180625/200556507-e9a354a4-abe0-4d4f-b939-6e93696228cd.png)
 
+Extension parses tempo page and show timer in a bage. Extension requires tempo tab to be open to display timer properly.
+
 
 ## Build extension
 ```
