@@ -1,5 +1,5 @@
 import { isPresent } from 'ts-is-present';
-import { SlaEventType } from './models';
+import { SlaEvent, SlaEventType } from './models';
 import $ from 'jquery';
 
 function loadSla() {
@@ -8,10 +8,12 @@ function loadSla() {
     `Page title is: '${pageTitle}' - evaluated by Chrome extension's 'contentScript.js' file`
   );
 
+  const slaColor = $("path.CircularProgressbar-path")?.css('stroke');
+
   const slaSelector = document.querySelector("#__next > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > span");
   const slaText = slaSelector?.textContent;
   console.log(
-    `SLA is: '${slaText}'`
+    `SLA is: '${slaText} (${slaColor})'`
   );
 
   chrome.runtime.sendMessage(
@@ -23,8 +25,9 @@ function loadSla() {
           ?.replaceAll('m', 'ₘ')
           ?.replaceAll('s', 'ₛ')
           ?.replaceAll(' ', ''),
+        color: slaColor
       },
-    },
+    } as SlaEvent,
     (response) => {
       console.log(`Response: ${response?.message}`);
     }

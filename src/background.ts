@@ -40,6 +40,9 @@ function updateCounter(event: SlaEvent) {
   chrome.action.setBadgeText({
     text: event.payload.message
   });
+  chrome.action.setBadgeBackgroundColor({
+    color: event.payload.color ?? 'rgb(84, 177, 133)'
+  });
 }
 
 restoreCounter();
