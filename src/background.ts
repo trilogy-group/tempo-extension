@@ -5,17 +5,73 @@
 // For more information on background script,
 // See https://developer.chrome.com/extensions/background_pages
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.type === 'GREETINGS') {
-    const message: string = `Hi ${
-      sender.tab ? 'Con' : 'Pop'
-    }, my name is Bac. I am from Background. It's great to hear from you.`;
+import { SlaEvent, SlaEventType } from './models';
+import { isPresent } from 'ts-is-present';
 
-    // Log message coming from the `request` parameter
+const counterStorage = {
+  get: (cb: (count: string) => void) => {
+    chrome.storage.sync.get(['count'], (result) => {
+      cb(result.count);
+    });
+  },
+  set: (value: string, cb?: () => void) => {
+    chrome.storage.sync.set(
+      {
+        count: value
+      },
+      () => {
+        if(isPresent(cb)) {
+          cb();
+        }
+      }
+    );
+  },
+};
+
+function setupCounter(initialValue = 'n/a') {
+  chrome.action.setBadgeText({
+    text: initialValue.toString()
+  });
+}
+
+
+function updateCounter(event: SlaEvent) {
+  counterStorage.set(event.payload.message)
+  chrome.action.setBadgeText({
+    text: event.payload.message
+  });
+  chrome.action.setBadgeBackgroundColor({
+    color: event.payload.color ?? 'rgb(84, 177, 133)'
+  });
+}
+
+restoreCounter();
+
+function restoreCounter() {
+  // Restore count value
+  counterStorage.get((count: string) => {
+    if (typeof count === 'undefined') {
+      // Set counter value as 0
+      counterStorage.set('n/a', () => {
+        setupCounter();
+      });
+    } else {
+      setupCounter(count);
+    }
+  });
+}
+
+chrome.runtime.onMessage.addListener((request: SlaEvent, sender, sendResponse) => {
+  let message;
+  if (request.type === SlaEventType.New) {
     console.log(request.payload.message);
     // Send a response message
-    sendResponse({
-      message,
-    });
+    updateCounter(request)
+    message = 'updated'
+  } else {
+    message = 'ignored'
   }
+  sendResponse({
+    message
+  });
 });

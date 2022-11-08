@@ -1,44 +1,39 @@
-'use strict';
+import { isPresent } from 'ts-is-present';
+import { SlaEvent, SlaEventType } from './models';
+import $ from 'jquery';
 
-// Content script file will run in the context of web page.
-// With content script you can manipulate the web pages using
-// Document Object Model (DOM).
-// You can also pass information to the parent extension.
+function loadSla() {
+  const pageTitle: string = document.head.getElementsByTagName('title')[0].innerHTML;
+  console.log(
+    `Page title is: '${pageTitle}' - evaluated by Chrome extension's 'contentScript.js' file`
+  );
 
-// We execute this script by making an entry in manifest.json file
-// under `content_scripts` property
+  const slaColor = $("path.CircularProgressbar-path")?.css('stroke');
 
-// For more information on Content Scripts,
-// See https://developer.chrome.com/extensions/content_scripts
+  const slaSelector = document.querySelector("#__next > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > span");
+  const slaText = slaSelector?.textContent;
+  console.log(
+    `SLA is: '${slaText} (${slaColor})'`
+  );
 
-// Log `title` of current active web page
-const pageTitle: string =
-  document.head.getElementsByTagName('title')[0].innerHTML;
-console.log(
-  `Page title is: '${pageTitle}' - evaluated by Chrome extension's 'contentScript.js' file`
-);
+  chrome.runtime.sendMessage(
+    {
+      type: isPresent(slaText) ? SlaEventType.New : SlaEventType.No,
+      payload: {
+        message: slaText
+          ?.replaceAll('h', 'ₕ')
+          ?.replaceAll('m', 'ₘ')
+          ?.replaceAll('s', 'ₛ')
+          ?.replaceAll(' ', ''),
+        color: slaColor
+      },
+    } as SlaEvent,
+    (response) => {
+      console.log(`Response: ${response?.message}`);
+    }
+  );
+}
 
-// Communicate with background file by sending a message
-chrome.runtime.sendMessage(
-  {
-    type: 'GREETINGS',
-    payload: {
-      message: 'Hello, my name is Con. I am from ContentScript.',
-    },
-  },
-  (response) => {
-    console.log(response.message);
-  }
-);
-
-// Listen for message
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.type === 'COUNT') {
-    console.log(`Current count is ${request.payload.count}`);
-  }
-
-  // Send an empty response
-  // See https://github.com/mozilla/webextension-polyfill/issues/130#issuecomment-531531890
-  sendResponse({});
-  return true;
+$(() => {
+  $('body').on('DOMSubtreeModified', loadSla);
 });
