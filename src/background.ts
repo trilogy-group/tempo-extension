@@ -34,12 +34,19 @@ function setupCounter(initialValue = 'n/a') {
   });
 }
 
-
 function updateCounter(event: SlaEvent) {
   counterStorage.set(event.payload.message)
   chrome.action.setBadgeText({
     text: event.payload.message
   });
+  if(event.payload.message === '5ₘ0ₛ' || event.payload.message === '1ₘ0ₛ') {
+    chrome.notifications.create('', {
+      title: 'Hurry up',
+      message: event.payload.message,
+      iconUrl: '/icons/icon_128.png',
+      type: 'basic'
+    });
+  }
   chrome.action.setBadgeBackgroundColor({
     color: event.payload.color ?? 'rgb(84, 177, 133)'
   });
