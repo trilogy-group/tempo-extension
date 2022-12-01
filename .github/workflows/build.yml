@@ -20,7 +20,6 @@ jobs:
       run: |
         npm ci
         npm run build
-        zip -r tempo-extension.zip build
     
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v3.1.1
@@ -28,4 +27,4 @@ jobs:
         # Artifact name
         name: tempo-extension.zip
         # A file, directory or wildcard pattern that describes what to upload
-        path: tempo-extension.zip
+        path: ./build/
