@@ -71,8 +71,6 @@ function restoreCounter() {
 chrome.runtime.onMessage.addListener((request: SlaEvent, sender, sendResponse) => {
   let message;
   if (request.type === SlaEventType.New) {
-    console.log(request.payload.message);
-    // Send a response message
     updateCounter(request)
     message = 'updated'
   } else {

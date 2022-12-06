@@ -3,11 +3,6 @@ import { SlaEvent, SlaEventType } from './models';
 import $ from 'jquery';
 
 function loadSla() {
-  const pageTitle: string = document.head.getElementsByTagName('title')[0].innerHTML;
-  console.log(
-    `Page title is: '${pageTitle}' - evaluated by Chrome extension's 'contentScript.js' file`
-  );
-
   let slaColor;
   let slaText;
   const pullWork = $('button:contains("Pull Work")');
@@ -20,9 +15,6 @@ function loadSla() {
     const slaSelector = document.querySelector("#__next > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > span");
     slaText = slaSelector?.textContent;
   }
-  console.log(
-    `SLA is: '${slaText} (${slaColor})'`
-  );
 
   chrome.runtime.sendMessage(
     {
@@ -36,9 +28,7 @@ function loadSla() {
         color: slaColor
       },
     } as SlaEvent,
-    (response) => {
-      console.log(`Response: ${response?.message}`);
-    }
+    (response) => {}
   );
 }
 
