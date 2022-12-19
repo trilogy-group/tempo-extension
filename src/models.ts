@@ -5,8 +5,13 @@ export enum SlaEventType {
 
 export interface SlaEvent {
   type: SlaEventType,
-  payload: {
-    message: string
-    color?: string
-  }
+  payload: SlaPayload
+}
+
+export interface SlaPayload {
+  sla: string
+  color?: string
+  title?: string
+  description?: string
+  auth?: string
 }
