@@ -1,7 +1,7 @@
 'use strict';
 
 import './popup.css';
-import { SlaEvent, SlaEventType } from './models';
+import { SlaEvent } from './models';
 import { getSla } from './slaStorage';
 
 (function () {
