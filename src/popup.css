@@ -49,8 +49,9 @@ code {
 }
 
 .counter-label {
-  font-size: 12px;
-  margin-bottom: 5px;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 10px;
 }
 
 .counter {
