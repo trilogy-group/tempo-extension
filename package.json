@@ -1,7 +1,7 @@
 {
   "name": "tempo-extension",
-  "version": "1.0.2",
-  "description": "My Chrome Extension",
+  "version": "1.0.3",
+  "description": "Tempo extension",
   "private": true,
   "scripts": {
     "watch": "webpack --mode=development --watch --config config/webpack.config.js",
