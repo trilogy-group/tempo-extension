@@ -14,6 +14,8 @@ function loadSla() {
 
     const slaSelector = document.querySelector("#__next > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > span");
     slaText = slaSelector?.textContent;
+
+    const title = $("#__next > div > div.overflow-y-auto.false.w-full > div > div > div > div.undefined.flex.justify-between.items-center.items-center.pb-5 > span")
   }
 
   chrome.runtime.sendMessage(
