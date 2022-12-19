@@ -6,7 +6,7 @@ function loadSla() {
   let event: SlaEvent;
   if(pullWork.length > 0) {
     event = {
-      type: SlaEventType.No,
+      type: SlaEventType.New,
       payload: {
         sla: 'pull',
         color: 'black',

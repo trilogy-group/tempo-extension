@@ -88,7 +88,12 @@ code {
 
 .divider {
   margin: 30px auto 25px;
-  width: 50px;
-  border: 0.5px dashed #000;
+  width: 95%;
+  border: 1px solid #000;
   opacity: 0.1;
+}
+
+#help a {
+  color: #003eff;
+  font-weight: bold;
 }
