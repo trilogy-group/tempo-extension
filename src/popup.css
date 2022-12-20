@@ -17,7 +17,7 @@ html {
 
 body {
   width: 350px;
-  height: 300px;
+  height: 600px;
 }
 
 .app {
@@ -96,4 +96,15 @@ code {
 #help a {
   color: #003eff;
   font-weight: bold;
+}
+
+#history {
+  max-height: 300px;
+  overflow-y: scroll;
+  justify-content: left;
+  text-align: left;
+}
+
+.history-item {
+  margin-top: 10px;
 }
