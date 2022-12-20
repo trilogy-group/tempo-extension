@@ -1,20 +1,28 @@
 'use strict';
 
 import './popup.css';
-import { SlaEvent } from './models';
-import { getSla } from './slaStorage';
+import { HistoryEvent, SlaEvent } from './models';
+import { getHistory, getSla } from './slaStorage';
 
 (function () {
-  function updateUi(event: SlaEvent) {
+  function updateSlaUi(event: SlaEvent) {
     const newCount = event.payload.sla;
     document.getElementById('counter')!.innerHTML = `<div style="color: ${event.payload.color}">${newCount}</div>`;
     document.getElementById('title')!.innerHTML = event.payload.title ?? 'N/A';
     document.getElementById('subtitle')!.innerHTML = event.payload.description ?? 'N/A';
   }
 
+  function updateHistoryUi(event: HistoryEvent) {
+    const history = JSON.stringify(event.payload.data);
+    document.getElementById('history')!.innerHTML = history;
+  }
+
   async function refresh() {
-    const event = await getSla();
-    updateUi(event);
+    const sliEvent = await getSla();
+    updateSlaUi(sliEvent);
+
+    const historyEvent = await getHistory();
+    updateHistoryUi(historyEvent);
   }
 
   setInterval(refresh, 1000);

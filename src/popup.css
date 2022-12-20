@@ -97,3 +97,7 @@ code {
   color: #003eff;
   font-weight: bold;
 }
+
+#history {
+  max-height: 300px;
+}

@@ -1,4 +1,4 @@
-import { SlaEvent, SlaEventType } from './models';
+import { HistoryEvent, SlaEvent, SlaEventType } from './models';
 import { isPresent } from 'ts-is-present';
 
 const slaStorage = {
@@ -20,6 +20,39 @@ const slaStorage = {
     );
   },
 };
+
+const historyStorage = {
+  get: (cb: (count: HistoryEvent) => void) => {
+    chrome.storage.sync.get(['history'], (result) => {
+      cb(result.history);
+    });
+  },
+  set: (value: HistoryEvent, cb?: () => void) => {
+    chrome.storage.sync.set(
+      {
+        history: value,
+      },
+      () => {
+        if (isPresent(cb)) {
+          cb();
+        }
+      },
+    );
+  },
+};
+
+export function updateHistory(event: HistoryEvent) {
+  historyStorage.set(event);
+}
+
+export async function getHistory() {
+  return new Promise<HistoryEvent>((resolve, reject) => {
+    historyStorage.get((e: HistoryEvent) => {
+      resolve(e);
+      return e;
+    });
+  });
+}
 
 function setupSla(initialValue = 'n/a') {
   chrome.action.setBadgeText({

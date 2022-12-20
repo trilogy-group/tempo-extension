@@ -5,18 +5,25 @@
 // For more information on background script,
 // See https://developer.chrome.com/extensions/background_pages
 
-import { SlaEvent, SlaEventType } from './models';
-import { getSla, updateSla } from './slaStorage';
+import { HistoryEvent, SlaEvent, SlaEventType } from './models';
+import { getSla, updateSla, updateHistory } from './slaStorage';
 
 getSla().then();
 
-chrome.runtime.onMessage.addListener((request: SlaEvent, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((request: SlaEvent | HistoryEvent, sender, sendResponse) => {
   let message;
-  if (request.type === SlaEventType.New) {
-    updateSla(request)
-    message = 'updated'
-  } else {
-    message = 'ignored'
+  switch (request.type) {
+    case SlaEventType.New:
+      updateSla(<SlaEvent>request)
+      message = 'updated';
+      break;
+    case SlaEventType.History:
+      updateHistory(<HistoryEvent>request)
+      message = 'updated history';
+      break;
+    default:
+      message = 'ignored';
+      break;
   }
   sendResponse({
     message
