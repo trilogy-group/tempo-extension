@@ -1,7 +1,7 @@
 'use strict';
 
 import './popup.css';
-import { HistoryEvent, SlaEvent } from './models';
+import { CurrentTask, History, HistoryEvent, SlaEvent } from './models';
 import { getHistory, getSla } from './slaStorage';
 
 (function () {
@@ -12,9 +12,30 @@ import { getHistory, getSla } from './slaStorage';
     document.getElementById('subtitle')!.innerHTML = event.payload.description ?? 'N/A';
   }
 
+  function renderHistory(history: History): string {
+    return `
+<div class="history-item">
+  <div>Executor: ${history.fetchedBy}</div>
+  <div>Fetched at: ${history.fetchedAt}</div>
+  <div>Completed at: ${history.completedAt}</div>
+  <div>Status: ${history.status}</div>
+  <div>Reject reason: ${history.rejectReason}</div>
+  <div>Reject details: ${history.rejectDetails.replaceAll(/(https?:\/\/\S+)/g,'<a target="_blank" href="$1">$1</a>')}</div>
+  <div>Durations: ${new Date(history.durationInSeconds * 1000).toISOString().slice(11, 19)}</div>
+</div>`
+  }
+
+  function renderHistoryTask(task: CurrentTask): string {
+    return task.history.map(renderHistory).join(' ');
+  }
+
   function updateHistoryUi(event: HistoryEvent) {
-    const history = JSON.stringify(event.payload.data);
-    document.getElementById('history')!.innerHTML = history;
+    const historyItems = '<div  class="history-item">History: </div>' + event.payload.data.currentTasks.map(renderHistoryTask).join(' ');
+    const historyElement = document.getElementById('history')!;
+    const currentContent = historyElement.innerHTML.toString();
+    if(currentContent.replaceAll(/\s/g, "") !== historyItems.replaceAll(/\s/g, "")) {
+      historyElement.innerHTML = historyItems;
+    }
   }
 
   async function refresh() {
@@ -27,3 +48,4 @@ import { getHistory, getSla } from './slaStorage';
 
   setInterval(refresh, 1000);
 })();
+

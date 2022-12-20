@@ -17,7 +17,7 @@ html {
 
 body {
   width: 350px;
-  height: 300px;
+  height: 600px;
 }
 
 .app {
@@ -100,4 +100,11 @@ code {
 
 #history {
   max-height: 300px;
+  overflow-y: scroll;
+  justify-content: left;
+  text-align: left;
+}
+
+.history-item {
+  margin-top: 10px;
 }

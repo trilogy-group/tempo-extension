@@ -73,9 +73,13 @@ export interface Task {
   __typename: string;
 }
 
+export interface History extends Task {
+
+}
+
 export interface CurrentTask {
   task: Task;
-  history: any[];
+  history: History[];
   automations: any[];
   __typename: string;
 }
