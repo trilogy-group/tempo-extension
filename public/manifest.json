@@ -17,11 +17,8 @@
     "default_popup": "popup.html"
   },
   "permissions": [
-    "alarms",
     "notifications",
-    "storage",
-    "tabs",
-    "activeTab"
+    "storage"
   ],
   "host_permissions": [ "https://app.alp-pulse.com/" ],
   "content_scripts": [
