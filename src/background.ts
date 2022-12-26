@@ -11,7 +11,7 @@ import { isPresent } from 'ts-is-present';
 
 getSla().then();
 
-let lastTimer: number | undefined = undefined;
+let lastTimer: number | NodeJS.Timer | undefined = undefined;
 
 function runTimer(event: SlaEvent) {
   if(isPresent(lastTimer)) {
@@ -20,14 +20,16 @@ function runTimer(event: SlaEvent) {
 
   if(!NON_SLA_EVENTS.includes(event.payload.sla)) {
     lastTimer = setInterval(setNotifications, 1000);
-    setNotifications(event);
   } else {
     lastTimer = undefined;
-    setNotifications(event);
   }
+  setNotifications(event).then();
 }
 
-function setNotifications(event: SlaEvent) {
+async function setNotifications(event?: SlaEvent) {
+  if (!isPresent(event)) {
+    event = await getSla();
+  }
   chrome.action.setBadgeText({
     text: event.payload.sla,
   }).then();

@@ -22,7 +22,7 @@ async function getHistory(): Promise<HistoryObject|undefined> {
   return await result.json()
 }
 
-let hasData = false;
+let sameData = false;
 let lastTitle: string | undefined = undefined;
 let lastDescription: string | undefined = undefined;
 let lastColour: string | undefined = undefined;
@@ -39,27 +39,32 @@ async function loadSla() {
       }
     }
     if(lastTitle !== event.payload.sla) {
-      hasData = false;
+      sameData = false;
       lastTitle = event.payload.sla;
       lastDescription = event.payload.description;
       lastColour = event.payload.color;
+    }
+    if (!sameData) {
+      chrome.runtime.sendMessage(event).then();
+      sameData = true;
     }
   } else {
     const color = $("path.CircularProgressbar-path")?.css('stroke');
 
     const slaSelector = document.querySelector("#__next > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > span");
-    const sla = slaSelector?.textContent
+    const slaText = slaSelector?.textContent ?? ''
+    const sla = slaText
       ?.replaceAll('h', 'ₕ')
       ?.replaceAll('m', 'ₘ')
       ?.replaceAll('s', 'ₛ')
-      ?.replaceAll(' ', '') ?? '';
+      ?.replaceAll(' ', '');
 
-    const slaObjectRegex = /^((\d{1,2})h)?((\d{1,2})m)?((\d{1,2})s)?$/g
-    const res = slaObjectRegex.exec(slaSelector?.textContent ?? '');
+    const slaObjectRegex = /^((\d{1,2})h\s*)?((\d{1,2})m\s*)?((\d{1,2})s\s*)?$/g
+    const res = slaObjectRegex.exec(slaText);
     const slaObject = {
-      h: parseInt(res![2]),
-      m: parseInt(res![4]),
-      s: parseInt(res![6]),
+      h: parseInt(res![2] ?? 0),
+      m: parseInt(res![4] ?? 0),
+      s: parseInt(res![6] ?? 0),
     };
 
     const mainSection = $("#__next > div > div > div > div > div > div > span");
@@ -77,25 +82,25 @@ async function loadSla() {
       }
     }
     if(lastTitle !== title && lastDescription !== description) {
-      hasData = false;
+      sameData = false;
       lastTitle = title;
       lastDescription = description;
     }
+    if (!sameData && slaText.replaceAll(' ', '') !== '') {
+      chrome.runtime.sendMessage(event).then();
+      const result = await getHistory();
+      if(result === undefined) {
+        return;
+      }
+      const authEvent: HistoryEvent = {
+        type: SlaEventType.History,
+        payload: result
+      }
+      chrome.runtime.sendMessage(authEvent).then();
+      sameData = true;
+    }
   }
 
-  if (!hasData) {
-    chrome.runtime.sendMessage(event).then();
-    const result = await getHistory();
-    if(result === undefined) {
-      return;
-    }
-    const authEvent: HistoryEvent = {
-      type: SlaEventType.History,
-      payload: result
-    }
-    chrome.runtime.sendMessage(authEvent).then();
-    hasData = true;
-  }
 }
 
 $(() => {
