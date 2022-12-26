@@ -48,7 +48,8 @@ async function loadSla() {
     const color = $("path.CircularProgressbar-path")?.css('stroke');
 
     const slaSelector = document.querySelector("#__next > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > span");
-    const sla = slaSelector?.textContent?.replaceAll('h', 'ₕ')
+    const sla = slaSelector?.textContent
+      ?.replaceAll('h', 'ₕ')
       ?.replaceAll('m', 'ₘ')
       ?.replaceAll('s', 'ₛ')
       ?.replaceAll(' ', '') ?? '';
@@ -56,9 +57,9 @@ async function loadSla() {
     const slaObjectRegex = /^((\d{1,2})h)?((\d{1,2})m)?((\d{1,2})s)?$/g
     const res = slaObjectRegex.exec(slaSelector?.textContent ?? '');
     const slaObject = {
-      h: res![2],
-      m: res![4],
-      s: res![6],
+      h: parseInt(res![2]),
+      m: parseInt(res![4]),
+      s: parseInt(res![6]),
     };
 
     const mainSection = $("#__next > div > div > div > div > div > div > span");
@@ -68,6 +69,7 @@ async function loadSla() {
       type: SlaEventType.New,
       payload: {
         sla,
+        createdAt: new Date(),
         slaObject,
         color,
         title,

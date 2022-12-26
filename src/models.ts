@@ -15,18 +15,18 @@ export interface HistoryEvent {
 }
 
 interface SlaObject {
-  h: string | null
-  m: string | null
-  s: string | null
+  h: number | null
+  m: number | null
+  s: number | null
 }
 
 export interface SlaPayload {
   sla: string
+  createdAt?: Date
   slaObject?: SlaObject
   color?: string
   title?: string
   description?: string
-  auth?: string
 }
 
 
