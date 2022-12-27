@@ -1,5 +1,8 @@
 import { HistoryEvent, HistoryObject, SlaEvent, SlaEventType } from './models';
 import $ from 'jquery';
+import { isPresent } from 'ts-is-present';
+import { debounceTime, fromEvent } from 'rxjs';
+import { subMilliseconds } from 'date-fns';
 
 async function getHistory(): Promise<HistoryObject|undefined> {
   const keys = Object.keys(localStorage).filter(x => x.startsWith('CognitoIdentityServiceProvider.') && x.endsWith('.idToken'));
@@ -36,9 +39,9 @@ async function loadSla() {
       payload: {
         sla: 'pull',
         color: 'black',
-      }
-    }
-    if(lastTitle !== event.payload.sla) {
+      },
+    };
+    if (lastTitle !== event.payload.sla) {
       sameData = false;
       lastTitle = event.payload.sla;
       lastDescription = event.payload.description;
@@ -49,39 +52,43 @@ async function loadSla() {
       sameData = true;
     }
   } else {
-    const color = $("path.CircularProgressbar-path")?.css('stroke');
+    const color = $('path.CircularProgressbar-path')?.css('stroke');
 
-    const slaSelector = document.querySelector("#__next > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > span");
-    const slaText = slaSelector?.textContent ?? ''
+    const slaSelector = document.querySelector('#__next > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > span');
+    const slaText = slaSelector?.textContent ?? '';
     const sla = slaText
       ?.replaceAll('h', 'ₕ')
       ?.replaceAll('m', 'ₘ')
       ?.replaceAll('s', 'ₛ')
       ?.replaceAll(' ', '');
 
-    const slaObjectRegex = /^((\d{1,2})h\s*)?((\d{1,2})m\s*)?((\d{1,2})s\s*)?$/g
+    const slaObjectRegex = /^((\d{1,2})h\s*)?((\d{1,2})m\s*)?((\d{1,2})s\s*)?$/g;
     const res = slaObjectRegex.exec(slaText);
-    const slaObject = {
-      h: parseInt(res![2] ?? 0),
-      m: parseInt(res![4] ?? 0),
-      s: parseInt(res![6] ?? 0),
-    };
+    let slaObject;
+    if (isPresent(res)) {
+      slaObject = {
+        h: parseInt(res[2] ?? 0),
+        m: parseInt(res[4] ?? 0),
+        s: parseInt(res[6] ?? 0),
+      };
+    }
 
-    const mainSection = $("#__next > div > div > div > div > div > div > span");
-    const title = mainSection?.get(0)?.textContent ?? ''
-    const description = mainSection?.get(1)?.textContent ?? ''
+    const mainSection = $('#__next > div > div > div > div > div > div > span');
+    const title = mainSection?.get(0)?.textContent ?? '';
+    const description = mainSection?.get(1)?.textContent ?? '';
+    let eventDate = subMilliseconds(new Date(), 1000); // because of bounce and processing time till displayed
     event = {
       type: SlaEventType.New,
       payload: {
         sla,
-        createdAt: new Date(),
+        createdAt: eventDate,
         slaObject,
         color,
         title,
-        description
-      }
-    }
-    if(lastTitle !== title && lastDescription !== description) {
+        description,
+      },
+    };
+    if (lastTitle !== title && lastDescription !== description) {
       sameData = false;
       lastTitle = title;
       lastDescription = description;
@@ -89,13 +96,13 @@ async function loadSla() {
     if (!sameData && slaText.replaceAll(' ', '') !== '') {
       chrome.runtime.sendMessage(event).then();
       const result = await getHistory();
-      if(result === undefined) {
+      if (result === undefined) {
         return;
       }
       const authEvent: HistoryEvent = {
         type: SlaEventType.History,
-        payload: result
-      }
+        payload: result,
+      };
       chrome.runtime.sendMessage(authEvent).then();
       sameData = true;
     }
@@ -104,5 +111,7 @@ async function loadSla() {
 }
 
 $(() => {
-  $('body').on('DOMSubtreeModified', loadSla);
+  fromEvent($(document),'DOMSubtreeModified')
+    .pipe(debounceTime(500))
+    .subscribe(loadSla);
 });
