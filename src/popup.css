@@ -99,6 +99,7 @@ code {
 
 #history {
   max-height: 300px;
+  width: 294px;
   overflow-y: auto;
   justify-content: left;
   text-align: left;
