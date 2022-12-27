@@ -21,11 +21,11 @@ import { isPresent } from 'ts-is-present';
     return `
 <div class="history-item">
   <div>Executor: ${history.fetchedBy}</div>
-  <div>Fetched at: ${history.fetchedAt}</div>
-  <div>Completed at: ${history.completedAt}</div>
+  <div>Fetched at: ${new Date(history.fetchedAt).toLocaleString()}</div>
+  <div>Completed at: ${new Date(history.completedAt).toLocaleString()}</div>
   <div>Status: ${history.status}</div>
-  <div>Reject reason: ${history.rejectReason}</div>
-  <div>Reject details: ${history.rejectDetails.replaceAll(/(https?:\/\/\S+)/g,'<a target="_blank" href="$1">$1</a>')}</div>
+  ${ history.rejectReason ? `<div>Reject reason: ${history.rejectReason}</div>` : ''}
+  ${ history.rejectDetails ? `<div>Reject details: ${history.rejectDetails?.replaceAll(/(https?:\/\/\S+)/g, '<a target="_blank" href="$1">$1</a>')}</div>` : ''}
   <div>Durations: ${new Date(history.durationInSeconds * 1000).toISOString().slice(11, 19)}</div>
 </div>`
   }
