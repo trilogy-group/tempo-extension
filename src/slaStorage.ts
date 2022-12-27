@@ -8,17 +8,15 @@ const slaStorage = {
     chrome.storage.sync.get(['sla'], (result) => {
       let payload = (<SlaEvent>result.sla).payload;
       if(isPresent(payload.slaObject) && !NON_SLA_EVENTS.includes(payload.sla)) {
-        debugger;
         const lastSla = payload.slaObject;
         const slaDate = payload.createdAt!;
         const newDate = new Date();
-        const secDiff = differenceInSeconds(newDate, new Date(slaDate));
-        const sec = Math.ceil(secDiff % 60);
-        const min = Math.floor(((secDiff / 60) % 60));
-        const hours = Math.floor(secDiff / 3600);
-        lastSla.h = (lastSla?.h ?? 0) - hours;
-        lastSla.m = (lastSla?.m ?? 0) - min;
-        lastSla.s = (lastSla?.s ?? 0) - sec;
+        const dateDiffSec = differenceInSeconds(newDate, new Date(slaDate));
+        const oldSlaSec = (lastSla?.h ?? 0) * 3600 + (lastSla?.m ?? 0) * 60 + (lastSla?.s ?? 0);
+        const secDiff = oldSlaSec - dateDiffSec;
+        lastSla.s = Math.ceil(secDiff % 60);
+        lastSla.m = Math.floor(((secDiff / 60) % 60));
+        lastSla.h = Math.floor(secDiff / 3600);
         payload.createdAt = newDate;
         if (lastSla.h > 0) {
           payload.sla = `${lastSla.h}ₕ${lastSla.m}ₘ`;
