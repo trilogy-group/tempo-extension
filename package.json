@@ -1,6 +1,6 @@
 {
   "name": "tempo-extension",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Tempo extension",
   "private": true,
   "scripts": {
@@ -23,7 +23,9 @@
     "webpack-merge": "^5.8.0"
   },
   "dependencies": {
+    "date-fns": "^2.29.3",
     "jquery": "^3.6.1",
+    "rxjs": "^7.8.0",
     "ts-is-present": "^1.2.2"
   }
 }

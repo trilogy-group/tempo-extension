@@ -1,9 +1,31 @@
 import { HistoryEvent, SlaEvent, SlaEventType } from './models';
 import { isPresent } from 'ts-is-present';
+import { differenceInSeconds } from 'date-fns';
 
+export const NON_SLA_EVENTS = ['pull', 'n/a'];
 const slaStorage = {
   get: (cb: (count: SlaEvent) => void) => {
     chrome.storage.sync.get(['sla'], (result) => {
+      let payload = (<SlaEvent>result.sla).payload;
+      if(isPresent(payload.slaObject) && !NON_SLA_EVENTS.includes(payload.sla)) {
+        const lastSla = payload.slaObject;
+        const slaDate = payload.createdAt!;
+        const newDate = new Date();
+        const dateDiffSec = differenceInSeconds(newDate, new Date(slaDate));
+        const oldSlaSec = (lastSla?.h ?? 0) * 3600 + (lastSla?.m ?? 0) * 60 + (lastSla?.s ?? 0);
+        const secDiff = oldSlaSec - dateDiffSec;
+        lastSla.s = Math.ceil(secDiff % 60);
+        lastSla.m = Math.floor(((secDiff / 60) % 60));
+        lastSla.h = Math.floor(secDiff / 3600);
+        payload.createdAt = newDate;
+        if (lastSla.h > 0) {
+          payload.sla = `${lastSla.h}ₕ${lastSla.m}ₘ`;
+        } else if (lastSla.m > 0) {
+          payload.sla = `${lastSla.m}ₘ${lastSla.s}ₛ`;
+        } else {
+          payload.sla = `${lastSla.s}ₛ`;
+        }
+      }
       cb(result.sla);
     });
   },
@@ -62,20 +84,6 @@ function setupSla(initialValue = 'n/a') {
 
 export function updateSla(event: SlaEvent) {
   slaStorage.set(event);
-  chrome.action.setBadgeText({
-    text: event.payload.sla,
-  });
-  if (event.payload.sla === '5ₘ0ₛ' || event.payload.sla === '1ₘ0ₛ') {
-    chrome.notifications.create('', {
-      title: 'Hurry up',
-      message: event.payload.sla,
-      iconUrl: '/icons/icon_128.png',
-      type: 'basic',
-    });
-  }
-  chrome.action.setBadgeBackgroundColor({
-    color: event.payload.color ?? 'rgb(84, 177, 133)',
-  }).then();
 }
 
 export async function getSla() {
