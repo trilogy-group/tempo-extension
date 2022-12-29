@@ -2,6 +2,7 @@ export enum SlaEventType {
   No,
   New,
   History,
+  Ping,
 }
 
 export interface SlaEvent {
@@ -12,6 +13,10 @@ export interface SlaEvent {
 export interface HistoryEvent {
   type: SlaEventType.History,
   payload: HistoryObject
+}
+
+export interface PingEvent {
+  type: SlaEventType.Ping,
 }
 
 interface SlaObject {
