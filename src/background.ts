@@ -32,12 +32,6 @@ function runTimer(event: SlaEvent) {
 function checkTimer() {
   if(isPresent(lastTimer) && isPresent(lastRun) && differenceInSeconds(lastRun, new Date()) > 2) {
     console.log('reactivating timer');
-    // chrome.notifications.create('', {
-    //   title: 'Timer check',
-    //   message: 'Reactivating timer',
-    //   iconUrl: '/icons/icon_128.png',
-    //   type: 'basic',
-    // });
   }
 }
 

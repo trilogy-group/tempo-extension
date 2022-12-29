@@ -127,9 +127,5 @@ $(() => {
     .pipe(debounceTime(500))
     .subscribe(loadSla);
   interval(20000).subscribe(ping)
-
-  // chrome.runtime.onInstalled.addListener(function() {
-  //   location.reload();
-  // });
 });
 
