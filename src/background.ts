@@ -8,14 +8,17 @@
 import { HistoryEvent, SlaEvent, SlaEventType } from './models';
 import { getSla, updateSla, updateHistory, NON_SLA_EVENTS } from './slaStorage';
 import { isPresent } from 'ts-is-present';
+import { differenceInSeconds } from 'date-fns';
 
 getSla().then();
 
 let lastTimer: number | NodeJS.Timer | undefined = undefined;
+let lastRun: Date | undefined = undefined;
 
 function runTimer(event: SlaEvent) {
   if(isPresent(lastTimer)) {
     clearInterval(lastTimer);
+    lastTimer = undefined;
   }
 
   if(!NON_SLA_EVENTS.includes(event.payload.sla)) {
@@ -26,7 +29,20 @@ function runTimer(event: SlaEvent) {
   setNotifications(event).then();
 }
 
+function checkTimer() {
+  if(isPresent(lastTimer) && isPresent(lastRun) && differenceInSeconds(lastRun, new Date()) > 2) {
+    console.log('reactivating timer');
+    // chrome.notifications.create('', {
+    //   title: 'Timer check',
+    //   message: 'Reactivating timer',
+    //   iconUrl: '/icons/icon_128.png',
+    //   type: 'basic',
+    // });
+  }
+}
+
 async function setNotifications(event?: SlaEvent) {
+  lastRun = new Date();
   if (!isPresent(event)) {
     event = await getSla();
   }
@@ -50,13 +66,17 @@ chrome.runtime.onMessage.addListener((request: SlaEvent | HistoryEvent, sender, 
   let message;
   switch (request.type) {
     case SlaEventType.New:
-      updateSla(<SlaEvent>request)
-      runTimer(request)
+      updateSla(<SlaEvent>request);
+      runTimer(request);
       message = 'updated';
       break;
     case SlaEventType.History:
-      updateHistory(<HistoryEvent>request)
+      updateHistory(<HistoryEvent>request);
       message = 'updated history';
+      break;
+    case SlaEventType.Ping:
+      checkTimer();
+      message = 'pong';
       break;
     default:
       message = 'ignored';
@@ -65,4 +85,23 @@ chrome.runtime.onMessage.addListener((request: SlaEvent | HistoryEvent, sender, 
   sendResponse({
     message
   });
+});
+
+chrome.runtime.onInstalled.addListener(function() {
+  chrome.tabs.query({url: "https://app.alp-pulse.com/"}, function(tabs) {
+    let isFirst = true;
+    for (let tab of tabs) {
+      if(tab.id) {
+        chrome.tabs.reload(tab.id);
+        if(isFirst) {
+          isFirst = false;
+        } else {
+          chrome.tabs.remove(tab.id);
+        }
+      }
+    }
+  });
+  // chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+  //   chrome.tabs.reload(tabs[0].id);
+  // });
 });

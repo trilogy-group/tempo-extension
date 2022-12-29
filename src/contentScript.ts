@@ -1,7 +1,13 @@
-import { HistoryEvent, HistoryObject, SlaEvent, SlaEventType } from './models';
+import {
+  HistoryEvent,
+  HistoryObject,
+  PingEvent,
+  SlaEvent,
+  SlaEventType,
+} from './models';
 import $ from 'jquery';
 import { isPresent } from 'ts-is-present';
-import { debounceTime, fromEvent } from 'rxjs';
+import { debounceTime, fromEvent, interval } from 'rxjs';
 import { subMilliseconds } from 'date-fns';
 
 async function getHistory(): Promise<HistoryObject|undefined> {
@@ -107,11 +113,23 @@ async function loadSla() {
       sameData = true;
     }
   }
+}
 
+function ping() {
+  const event: PingEvent = {
+    type: SlaEventType.Ping
+  };
+  chrome.runtime.sendMessage(event).then();
 }
 
 $(() => {
   fromEvent($(document),'DOMSubtreeModified')
     .pipe(debounceTime(500))
     .subscribe(loadSla);
+  interval(20000).subscribe(ping)
+
+  // chrome.runtime.onInstalled.addListener(function() {
+  //   location.reload();
+  // });
 });
+
