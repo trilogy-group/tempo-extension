@@ -5,7 +5,7 @@ import { differenceInSeconds } from 'date-fns';
 export const NON_SLA_EVENTS = ['pull', 'n/a'];
 const slaStorage = {
   get: (cb: (count: SlaEvent) => void) => {
-    chrome.storage.sync.get(['sla'], (result) => {
+    chrome.storage.local.get(['sla'], (result) => {
       let payload = (<SlaEvent>result.sla).payload;
       if(isPresent(payload.slaObject) && !NON_SLA_EVENTS.includes(payload.sla)) {
         const lastSla = payload.slaObject;
@@ -30,7 +30,7 @@ const slaStorage = {
     });
   },
   set: (value: SlaEvent, cb?: () => void) => {
-    chrome.storage.sync.set(
+    chrome.storage.local.set(
       {
         sla: value,
       },
@@ -45,12 +45,12 @@ const slaStorage = {
 
 const historyStorage = {
   get: (cb: (count: HistoryEvent) => void) => {
-    chrome.storage.sync.get(['history'], (result) => {
+    chrome.storage.local.get(['history'], (result) => {
       cb(result.history);
     });
   },
   set: (value: HistoryEvent, cb?: () => void) => {
-    chrome.storage.sync.set(
+    chrome.storage.local.set(
       {
         history: value,
       },
