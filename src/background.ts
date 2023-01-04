@@ -14,6 +14,9 @@ getSla().then();
 
 let lastTimer: number | NodeJS.Timer | undefined = undefined;
 let lastRun: Date | undefined = undefined;
+let lastMinute: boolean = false
+let lastFiveMinutes: boolean = false
+let lastTenMinutes: boolean = false
 
 function runTimer(event: SlaEvent) {
   if(isPresent(lastTimer)) {
@@ -25,6 +28,15 @@ function runTimer(event: SlaEvent) {
     lastTimer = setInterval(setNotifications, 1000);
   } else {
     lastTimer = undefined;
+    lastMinute = false;
+    lastFiveMinutes = false;
+    lastTenMinutes = false;
+    chrome.notifications.create('', {
+      title: 'Previous task has finished',
+      message: event.payload.sla,
+      iconUrl: '/icons/icon_128.png',
+      type: 'basic',
+    });
   }
   setNotifications(event).then();
 }
@@ -35,6 +47,15 @@ function checkTimer() {
   }
 }
 
+function lowTimeNotification(event: SlaEvent) {
+  chrome.notifications.create('', {
+    title: 'Hurry up',
+    message: event.payload.sla,
+    iconUrl: '/icons/icon_128.png',
+    type: 'basic',
+  });
+}
+
 async function setNotifications(event?: SlaEvent) {
   lastRun = new Date();
   if (!isPresent(event)) {
@@ -43,13 +64,22 @@ async function setNotifications(event?: SlaEvent) {
   chrome.action.setBadgeText({
     text: event.payload.sla,
   }).then();
-  if (event.payload.sla === '5ₘ0ₛ' || event.payload.sla === '1ₘ0ₛ') {
-    chrome.notifications.create('', {
-      title: 'Hurry up',
-      message: event.payload.sla,
-      iconUrl: '/icons/icon_128.png',
-      type: 'basic',
-    });
+  if(isPresent(event.payload.slaObject) && isPresent(event.payload.slaObject.h) && isPresent(event.payload.slaObject.m)) {
+    if(event.payload.slaObject.h >= 0 && event.payload.slaObject.m > 15 && (lastTenMinutes || lastFiveMinutes || lastMinute)) {
+      lastMinute = true;
+      lastFiveMinutes = true;
+      lastTenMinutes = true;
+    }
+    if (!lastTenMinutes && event.payload.slaObject.h < 1 && event.payload.slaObject.m < 10) {
+      lowTimeNotification(event);
+      lastTenMinutes = true;
+    } else if (!lastFiveMinutes && event.payload.slaObject.h < 1 && event.payload.slaObject.m < 5) {
+      lowTimeNotification(event);
+      lastFiveMinutes = true;
+    } else if (!lastMinute && event.payload.slaObject.h < 1 && event.payload.slaObject.m < 1) {
+      lowTimeNotification(event);
+      lastMinute = true;
+    }
   }
   chrome.action.setBadgeBackgroundColor({
     color: event.payload.color ?? 'rgb(84, 177, 133)',
