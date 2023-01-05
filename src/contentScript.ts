@@ -126,6 +126,6 @@ $(() => {
   fromEvent($(document),'DOMSubtreeModified')
     .pipe(debounceTime(500))
     .subscribe(loadSla);
-  interval(20000).subscribe(ping)
+  interval(1000).subscribe(ping)
 });
 

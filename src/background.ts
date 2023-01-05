@@ -41,9 +41,11 @@ function runTimer(event: SlaEvent) {
   setNotifications(event).then();
 }
 
-function checkTimer() {
-  if(isPresent(lastTimer) && isPresent(lastRun) && differenceInSeconds(lastRun, new Date()) > 2) {
+async function checkTimer() {
+  if (isPresent(lastTimer) && isPresent(lastRun) && differenceInSeconds(lastRun, new Date()) > 2) {
     console.log('reactivating timer');
+    const event = await getSla();
+    runTimer(event);
   }
 }
 
