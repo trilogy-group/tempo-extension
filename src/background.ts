@@ -15,6 +15,7 @@ import {
 } from "./slaStorage";
 import { isPresent } from 'ts-is-present';
 import { differenceInSeconds } from 'date-fns';
+import { debounceTime, fromEvent, fromEventPattern, Observable } from "rxjs";
 
 getSla().then();
 
@@ -48,7 +49,7 @@ function runTimer(event: SlaEvent) {
 }
 
 async function checkTimer() {
-  if (isPresent(lastTimer) && isPresent(lastRun) && differenceInSeconds(lastRun, new Date()) > 2) {
+  if (isPresent(lastTimer) && isPresent(lastRun) && differenceInSeconds(lastRun, new Date()) > 3) {
     console.log('reactivating timer');
     const event = await getSla();
     runTimer(event);
@@ -72,7 +73,7 @@ function setBadge(event: SlaEvent) {
     color: event.payload.color ?? "rgb(84, 177, 133)"
   }).then();
   chrome.action.setTitle({
-    title: `Time left: ${getTimer(event)}`
+    title: `Tempo extension.\n${getTimer(event)}`
   }).then();
 }
 
@@ -126,18 +127,25 @@ chrome.runtime.onMessage.addListener((request: SlaEvent | HistoryEvent, sender, 
   });
 });
 
-chrome.runtime.onInstalled.addListener(function() {
-  chrome.tabs.query({url: "https://app.alp-pulse.com/"}, function(tabs) {
+function restart() {
+  chrome.tabs.query({ url: "https://app.alp-pulse.com/" }, function(tabs) {
     let isFirst = true;
     for (let tab of tabs) {
-      if(tab.id) {
-        chrome.tabs.reload(tab.id);
-        if(isFirst) {
+      if (tab.id) {
+        chrome.tabs.reload(tab.id).then();
+        if (isFirst) {
           isFirst = false;
         } else {
-          chrome.tabs.remove(tab.id);
+          chrome.tabs.remove(tab.id).then();
         }
       }
     }
   });
+}
+
+const restartRequired =  fromEventPattern((handler) => {
+  chrome.runtime.onInstalled.addListener(handler);
+  chrome.runtime.onRestartRequired.addListener(handler);
+  chrome.runtime.onStartup.addListener(handler);
 });
+restartRequired.pipe(debounceTime(1000)).subscribe(restart);
