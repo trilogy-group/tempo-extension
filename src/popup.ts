@@ -2,17 +2,13 @@
 
 import './popup.css';
 import { CurrentTask, History, HistoryEvent, SlaEvent } from './models';
-import { getHistory, getSla } from './slaStorage';
+import { getHistory, getSla, getTimer } from "./slaStorage";
 import { isPresent } from 'ts-is-present';
 
 (function () {
   function updateSlaUi(event: SlaEvent) {
-    let newCount = event.payload.sla;
-    if(isPresent(event.payload.slaObject)) {
-      const slaObject = event.payload.slaObject;
-      newCount = `${slaObject.h}:${slaObject.m}:${slaObject.s}`
-    }
-    document.getElementById('counter')!.innerHTML = `<div style="color: ${event.payload.color}">${newCount}</div>`;
+    let timer = getTimer(event);
+    document.getElementById('counter')!.innerHTML = `<div style="color: ${event.payload.color}">${timer}</div>`;
     document.getElementById('title')!.innerHTML = event.payload.title ?? 'N/A';
     document.getElementById('subtitle')!.innerHTML = event.payload.description ?? 'N/A';
   }

@@ -105,3 +105,17 @@ export async function getSla() {
       }
     });
 }
+
+export function getTimer(event: SlaEvent) {
+  let newCount = event.payload.sla;
+  const config = {
+    minimumIntegerDigits: 2,
+    useGrouping: false
+  };
+  const locale = 'en-US';
+  if(isPresent(event.payload.slaObject)) {
+    const slaObject = event.payload.slaObject;
+    newCount = `${slaObject.h?.toLocaleString(locale, config)}:${slaObject.m?.toLocaleString(locale, config)}:${slaObject.s?.toLocaleString(locale, config)}`
+  }
+  return newCount;
+}

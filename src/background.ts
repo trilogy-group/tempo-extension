@@ -6,7 +6,13 @@
 // See https://developer.chrome.com/extensions/background_pages
 
 import { HistoryEvent, SlaEvent, SlaEventType } from './models';
-import { getSla, updateSla, updateHistory, NON_SLA_EVENTS } from './slaStorage';
+import {
+  getSla,
+  updateSla,
+  updateHistory,
+  NON_SLA_EVENTS,
+  getTimer
+} from "./slaStorage";
 import { isPresent } from 'ts-is-present';
 import { differenceInSeconds } from 'date-fns';
 
@@ -66,7 +72,7 @@ function setBadge(event: SlaEvent) {
     color: event.payload.color ?? "rgb(84, 177, 133)"
   }).then();
   chrome.action.setTitle({
-    title: `Time left: ${event.payload.sla}`
+    title: `Time left: ${getTimer(event)}`
   }).then();
 }
 
