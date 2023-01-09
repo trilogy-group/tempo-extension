@@ -58,14 +58,24 @@ function lowTimeNotification(event: SlaEvent) {
   });
 }
 
+function setBadge(event: SlaEvent) {
+  chrome.action.setBadgeText({
+    text: event.payload.sla
+  }).then();
+  chrome.action.setBadgeBackgroundColor({
+    color: event.payload.color ?? "rgb(84, 177, 133)"
+  }).then();
+  chrome.action.setTitle({
+    title: `Time left: ${event.payload.sla}`
+  }).then();
+}
+
 async function setNotifications(event?: SlaEvent) {
   lastRun = new Date();
   if (!isPresent(event)) {
     event = await getSla();
   }
-  chrome.action.setBadgeText({
-    text: event.payload.sla,
-  }).then();
+  setBadge(event);
   if(isPresent(event.payload.slaObject) && isPresent(event.payload.slaObject.h) && isPresent(event.payload.slaObject.m)) {
     if(event.payload.slaObject.h >= 0 && event.payload.slaObject.m > 15 && (lastTenMinutes || lastFiveMinutes || lastMinute)) {
       lastMinute = true;
@@ -83,9 +93,6 @@ async function setNotifications(event?: SlaEvent) {
       lastMinute = true;
     }
   }
-  chrome.action.setBadgeBackgroundColor({
-    color: event.payload.color ?? 'rgb(84, 177, 133)',
-  }).then();
 }
 
 chrome.runtime.onMessage.addListener((request: SlaEvent | HistoryEvent, sender, sendResponse) => {
