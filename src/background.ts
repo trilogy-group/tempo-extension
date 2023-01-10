@@ -6,9 +6,16 @@
 // See https://developer.chrome.com/extensions/background_pages
 
 import { HistoryEvent, SlaEvent, SlaEventType } from './models';
-import { getSla, updateSla, updateHistory, NON_SLA_EVENTS } from './slaStorage';
+import {
+  getSla,
+  updateSla,
+  updateHistory,
+  NON_SLA_EVENTS,
+  getTimer
+} from "./slaStorage";
 import { isPresent } from 'ts-is-present';
 import { differenceInSeconds } from 'date-fns';
+import { debounceTime, fromEvent, fromEventPattern, Observable } from "rxjs";
 
 getSla().then();
 
@@ -42,7 +49,7 @@ function runTimer(event: SlaEvent) {
 }
 
 async function checkTimer() {
-  if (isPresent(lastTimer) && isPresent(lastRun) && differenceInSeconds(lastRun, new Date()) > 2) {
+  if (isPresent(lastTimer) && isPresent(lastRun) && differenceInSeconds(lastRun, new Date()) > 3) {
     console.log('reactivating timer');
     const event = await getSla();
     runTimer(event);
@@ -58,14 +65,24 @@ function lowTimeNotification(event: SlaEvent) {
   });
 }
 
+function setBadge(event: SlaEvent) {
+  chrome.action.setBadgeText({
+    text: event.payload.sla
+  }).then();
+  chrome.action.setBadgeBackgroundColor({
+    color: event.payload.color ?? "rgb(84, 177, 133)"
+  }).then();
+  chrome.action.setTitle({
+    title: `Tempo extension.\n${getTimer(event)}`
+  }).then();
+}
+
 async function setNotifications(event?: SlaEvent) {
   lastRun = new Date();
   if (!isPresent(event)) {
     event = await getSla();
   }
-  chrome.action.setBadgeText({
-    text: event.payload.sla,
-  }).then();
+  setBadge(event);
   if(isPresent(event.payload.slaObject) && isPresent(event.payload.slaObject.h) && isPresent(event.payload.slaObject.m)) {
     if(event.payload.slaObject.h >= 0 && event.payload.slaObject.m > 15 && (lastTenMinutes || lastFiveMinutes || lastMinute)) {
       lastMinute = true;
@@ -83,9 +100,6 @@ async function setNotifications(event?: SlaEvent) {
       lastMinute = true;
     }
   }
-  chrome.action.setBadgeBackgroundColor({
-    color: event.payload.color ?? 'rgb(84, 177, 133)',
-  }).then();
 }
 
 chrome.runtime.onMessage.addListener((request: SlaEvent | HistoryEvent, sender, sendResponse) => {
@@ -113,18 +127,25 @@ chrome.runtime.onMessage.addListener((request: SlaEvent | HistoryEvent, sender, 
   });
 });
 
-chrome.runtime.onInstalled.addListener(function() {
-  chrome.tabs.query({url: "https://app.alp-pulse.com/"}, function(tabs) {
+function restart() {
+  chrome.tabs.query({ url: "https://app.alp-pulse.com/" }, function(tabs) {
     let isFirst = true;
     for (let tab of tabs) {
-      if(tab.id) {
-        chrome.tabs.reload(tab.id);
-        if(isFirst) {
+      if (tab.id) {
+        chrome.tabs.reload(tab.id).then();
+        if (isFirst) {
           isFirst = false;
         } else {
-          chrome.tabs.remove(tab.id);
+          chrome.tabs.remove(tab.id).then();
         }
       }
     }
   });
+}
+
+const restartRequired =  fromEventPattern((handler) => {
+  chrome.runtime.onInstalled.addListener(handler);
+  chrome.runtime.onRestartRequired.addListener(handler);
+  chrome.runtime.onStartup.addListener(handler);
 });
+restartRequired.pipe(debounceTime(1000)).subscribe(restart);

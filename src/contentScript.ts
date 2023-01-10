@@ -47,9 +47,9 @@ async function loadSla() {
         color: 'black',
       },
     };
-    if (lastTitle !== event.payload.sla) {
+    if (lastTitle !== event.payload.title || lastDescription !== event.payload.description || lastColour !== event.payload.color) {
       sameData = false;
-      lastTitle = event.payload.sla;
+      lastTitle = event.payload.title;
       lastDescription = event.payload.description;
       lastColour = event.payload.color;
     }
@@ -122,10 +122,18 @@ function ping() {
   chrome.runtime.sendMessage(event).then();
 }
 
+function resync() {
+  sameData = false;
+  lastTitle = undefined;
+  lastDescription = undefined;
+  lastColour = undefined;
+}
+
 $(() => {
   fromEvent($(document),'DOMSubtreeModified')
     .pipe(debounceTime(500))
     .subscribe(loadSla);
   interval(1000).subscribe(ping)
+  interval(60000).subscribe(resync)
 });
 

@@ -4,10 +4,10 @@ import { differenceInSeconds } from 'date-fns';
 
 export const NON_SLA_EVENTS = ['pull', 'n/a'];
 const slaStorage = {
-  get: (cb: (count: SlaEvent) => void) => {
-    chrome.storage.local.get(['sla'], (result) => {
+  get: async () => {
+    return await chrome.storage.local.get(['sla']).then(result => {
       let payload = (<SlaEvent>result.sla).payload;
-      if(isPresent(payload.slaObject) && !NON_SLA_EVENTS.includes(payload.sla)) {
+      if (isPresent(payload.slaObject) && !NON_SLA_EVENTS.includes(payload.sla)) {
         const lastSla = payload.slaObject;
         const slaDate = payload.createdAt!;
         const newDate = new Date();
@@ -26,7 +26,7 @@ const slaStorage = {
           payload.sla = `${lastSla.s}ₛ`;
         }
       }
-      cb(result.sla);
+      return result.sla;
     });
   },
   set: (value: SlaEvent, cb?: () => void) => {
@@ -87,9 +87,7 @@ export function updateSla(event: SlaEvent) {
 }
 
 export async function getSla() {
-  // Restore count value
-  const count = new Promise<SlaEvent>((resolve, reject) => {
-    slaStorage.get((count: SlaEvent) => {
+  return await slaStorage.get().then((count: SlaEvent) => {
       if (typeof count === 'undefined') {
         let initValue: SlaEvent = {
           type: SlaEventType.New,
@@ -101,13 +99,23 @@ export async function getSla() {
         slaStorage.set(initValue, () => {
           setupSla();
         });
-        resolve(initValue)
+        return initValue;
       } else {
-        setupSla(count.payload.sla);
-        resolve(count)
         return count;
       }
     });
-  });
-  return count;
+}
+
+export function getTimer(event: SlaEvent) {
+  let newCount = event.payload.sla;
+  const config = {
+    minimumIntegerDigits: 2,
+    useGrouping: false
+  };
+  const locale = 'en-US';
+  if(isPresent(event.payload.slaObject)) {
+    const slaObject = event.payload.slaObject;
+    newCount = `${slaObject.h?.toLocaleString(locale, config)}:${slaObject.m?.toLocaleString(locale, config)}:${slaObject.s?.toLocaleString(locale, config)}`
+  }
+  return newCount;
 }
