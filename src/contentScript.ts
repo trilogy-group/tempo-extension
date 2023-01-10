@@ -134,6 +134,6 @@ $(() => {
     .pipe(debounceTime(500))
     .subscribe(loadSla);
   interval(1000).subscribe(ping)
-  interval(60000).subscribe(resync)
+  interval(20000).subscribe(resync)
 });
 

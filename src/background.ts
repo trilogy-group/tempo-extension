@@ -15,7 +15,7 @@ import {
 } from "./slaStorage";
 import { isPresent } from 'ts-is-present';
 import { differenceInSeconds } from 'date-fns';
-import { debounceTime, fromEvent, fromEventPattern, Observable } from "rxjs";
+import { debounceTime, fromEventPattern } from "rxjs";
 
 getSla().then();
 
@@ -115,7 +115,7 @@ chrome.runtime.onMessage.addListener((request: SlaEvent | HistoryEvent, sender, 
       message = 'updated history';
       break;
     case SlaEventType.Ping:
-      checkTimer();
+      checkTimer().then();
       message = 'pong';
       break;
     default:
