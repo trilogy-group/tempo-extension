@@ -133,7 +133,7 @@ function onMessageListener(request: SlaEvent | HistoryEvent, sender: MessageSend
 const eventSubscription = fromEventPattern<Parameters<typeof onMessageListener>>((handler) => {
   chrome.runtime.onMessage.addListener(handler);
 });
-eventSubscription.pipe(debounceTime(500)).subscribe({
+eventSubscription.pipe(debounceTime(150)).subscribe({
   next: ([x,y,z]) => onMessageListener(x, y, z)
 });
 
