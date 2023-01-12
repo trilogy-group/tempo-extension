@@ -15,12 +15,14 @@ import {
 } from "./slaStorage";
 import { isPresent } from 'ts-is-present';
 import { differenceInSeconds } from 'date-fns';
-import { debounceTime, fromEvent, fromEventPattern, Observable } from "rxjs";
+import { debounceTime, fromEventPattern } from "rxjs";
+import MessageSender = chrome.runtime.MessageSender;
 
 getSla().then();
 
 let lastTimer: number | NodeJS.Timer | undefined = undefined;
 let lastRun: Date | undefined = undefined;
+let isInitialized: boolean = false
 let lastMinute: boolean = false
 let lastFiveMinutes: boolean = false
 let lastTenMinutes: boolean = false
@@ -49,10 +51,11 @@ function runTimer(event: SlaEvent) {
 }
 
 async function checkTimer() {
-  if (isPresent(lastTimer) && isPresent(lastRun) && differenceInSeconds(lastRun, new Date()) > 3) {
+  if ((isPresent(lastTimer) && isPresent(lastRun) && differenceInSeconds(lastRun, new Date()) > 2) || !isInitialized) {
     console.log('reactivating timer');
     const event = await getSla();
     runTimer(event);
+    isInitialized = true;
   }
 }
 
@@ -102,7 +105,7 @@ async function setNotifications(event?: SlaEvent) {
   }
 }
 
-chrome.runtime.onMessage.addListener((request: SlaEvent | HistoryEvent, sender, sendResponse) => {
+function onMessageListener(request: SlaEvent | HistoryEvent, sender: MessageSender, sendResponse: (response?: any) => void) {
   let message;
   switch (request.type) {
     case SlaEventType.New:
@@ -115,7 +118,7 @@ chrome.runtime.onMessage.addListener((request: SlaEvent | HistoryEvent, sender, 
       message = 'updated history';
       break;
     case SlaEventType.Ping:
-      checkTimer();
+      checkTimer().then();
       message = 'pong';
       break;
     default:
@@ -125,7 +128,9 @@ chrome.runtime.onMessage.addListener((request: SlaEvent | HistoryEvent, sender, 
   sendResponse({
     message
   });
-});
+}
+
+chrome.runtime.onMessage.addListener(onMessageListener);
 
 function restart() {
   chrome.tabs.query({ url: "https://app.alp-pulse.com/" }, function(tabs) {
@@ -143,7 +148,7 @@ function restart() {
   });
 }
 
-const restartRequired =  fromEventPattern((handler) => {
+const restartRequired = fromEventPattern((handler) => {
   chrome.runtime.onInstalled.addListener(handler);
   chrome.runtime.onRestartRequired.addListener(handler);
   chrome.runtime.onStartup.addListener(handler);
