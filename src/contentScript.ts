@@ -7,7 +7,7 @@ import {
 } from './models';
 import $ from 'jquery';
 import { isPresent } from 'ts-is-present';
-import { debounceTime, fromEvent, interval } from 'rxjs';
+import { debounceTime, fromEvent, interval, map, merge } from "rxjs";
 import { subMilliseconds } from 'date-fns';
 
 async function getHistory(): Promise<HistoryObject|undefined> {
@@ -130,10 +130,12 @@ function resync() {
 }
 
 $(() => {
-  fromEvent($(document),'DOMSubtreeModified')
+  merge(
+    fromEvent($(document),'DOMSubtreeModified'),
+    interval(10000).pipe(map(() => resync()))
+  )
     .pipe(debounceTime(500))
     .subscribe(loadSla);
-  interval(1000).subscribe(ping)
-  interval(20000).subscribe(resync)
+  // interval(1000).subscribe(ping)
 });
 
