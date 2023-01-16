@@ -11,7 +11,7 @@ import {
   updateSla,
   updateHistory,
   NON_SLA_EVENTS,
-  getTimer
+  getTimer, STORAGE_TYPE, booleanStorage
 } from "./slaStorage";
 import { isPresent } from 'ts-is-present';
 import { differenceInSeconds } from 'date-fns';
@@ -23,12 +23,12 @@ getSla().then();
 let lastTimer: number | NodeJS.Timer | undefined = undefined;
 let lastRun: Date | undefined = undefined;
 let isInitialized: boolean = false
-let isPull: boolean = true
-let lastMinute: boolean = false
-let lastFiveMinutes: boolean = false
-let lastTenMinutes: boolean = false
+let isPull = booleanStorage(STORAGE_TYPE.IS_PULL);
+let lastMinute = booleanStorage(STORAGE_TYPE.LAST_MINUTE);
+let lastFiveMinutes = booleanStorage(STORAGE_TYPE.LAST_FIVE_MINUTES);
+let lastTenMinutes = booleanStorage(STORAGE_TYPE.LAST_TEN_MINUTES);
 
-function runTimer(event: SlaEvent) {
+async function runTimer(event: SlaEvent) {
   if(isPresent(lastTimer)) {
     clearInterval(lastTimer);
     lastTimer = undefined;
@@ -36,13 +36,15 @@ function runTimer(event: SlaEvent) {
 
   if(!NON_SLA_EVENTS.includes(event.payload.sla)) {
     lastTimer = setInterval(setNotifications, 1000);
-    isPull = false;
+    await isPull.set(false);
   } else {
     lastTimer = undefined;
-    lastMinute = false;
-    lastFiveMinutes = false;
-    lastTenMinutes = false;
-    if(!isPull) {
+    await Promise.all([
+      lastMinute.set(false),
+      lastFiveMinutes.set(false),
+      lastTenMinutes.set(false),
+    ]);
+    if(!(await isPull.get())) {
       chrome.notifications.create('', {
         title: 'Previous task has finished',
         message: event.payload.sla,
@@ -50,7 +52,7 @@ function runTimer(event: SlaEvent) {
         type: 'basic',
       });
     }
-    isPull = true;
+    await isPull.set(true);
   }
   setNotifications(event).then();
 }
@@ -59,7 +61,7 @@ async function checkTimer() {
   if ((isPresent(lastTimer) && isPresent(lastRun) && differenceInSeconds(lastRun, new Date()) > 2) || !isInitialized) {
     console.log('reactivating timer');
     const event = await getSla();
-    runTimer(event);
+    await runTimer(event);
     isInitialized = true;
   }
 }
@@ -92,30 +94,34 @@ async function setNotifications(event?: SlaEvent) {
   }
   setBadge(event);
   if(isPresent(event.payload.slaObject) && isPresent(event.payload.slaObject.h) && isPresent(event.payload.slaObject.m)) {
-    if(event.payload.slaObject.h >= 0 && event.payload.slaObject.m > 15 && (lastTenMinutes || lastFiveMinutes || lastMinute)) {
-      lastMinute = true;
-      lastFiveMinutes = true;
-      lastTenMinutes = true;
-    }
-    if (!lastTenMinutes && event.payload.slaObject.h < 1 && event.payload.slaObject.m < 10) {
+    const lastTenMinutesValue = await lastTenMinutes.get();
+    const lastFiveMinutesValue = await lastFiveMinutes.get();
+    const lastMinuteValue = await lastMinute.get();
+    if(event.payload.slaObject.h >= 0 && event.payload.slaObject.m > 10 && (lastTenMinutesValue || lastFiveMinutesValue || lastMinuteValue)) {
+      await Promise.all([
+        lastMinute.set(false),
+        lastFiveMinutes.set(false),
+        lastTenMinutes.set(false),
+      ]);
+    } else if (!lastTenMinutesValue && event.payload.slaObject.h < 1 && event.payload.slaObject.m < 10) {
       lowTimeNotification(event);
-      lastTenMinutes = true;
-    } else if (!lastFiveMinutes && event.payload.slaObject.h < 1 && event.payload.slaObject.m < 5) {
+      await lastTenMinutes.set(true);
+    } else if (!lastFiveMinutesValue && event.payload.slaObject.h < 1 && event.payload.slaObject.m < 5) {
       lowTimeNotification(event);
-      lastFiveMinutes = true;
-    } else if (!lastMinute && event.payload.slaObject.h < 1 && event.payload.slaObject.m < 1) {
+      await lastFiveMinutes.set(true);
+    } else if (!lastMinuteValue && event.payload.slaObject.h < 1 && event.payload.slaObject.m < 1) {
       lowTimeNotification(event);
-      lastMinute = true;
+      await lastMinute.set(true);
     }
   }
 }
 
-function onMessageListener(request: SlaEvent | HistoryEvent, sender: MessageSender, sendResponse: (response?: any) => void) {
+async function onMessageListener(request: SlaEvent | HistoryEvent, sender: MessageSender, sendResponse: (response?: any) => void) {
   let message;
   switch (request.type) {
     case SlaEventType.New:
       updateSla(<SlaEvent>request);
-      runTimer(request);
+      await runTimer(request);
       message = 'updated';
       break;
     case SlaEventType.History:
