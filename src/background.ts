@@ -23,6 +23,7 @@ getSla().then();
 let lastTimer: number | NodeJS.Timer | undefined = undefined;
 let lastRun: Date | undefined = undefined;
 let isInitialized: boolean = false
+let isPull: boolean = true
 let lastMinute: boolean = false
 let lastFiveMinutes: boolean = false
 let lastTenMinutes: boolean = false
@@ -35,17 +36,21 @@ function runTimer(event: SlaEvent) {
 
   if(!NON_SLA_EVENTS.includes(event.payload.sla)) {
     lastTimer = setInterval(setNotifications, 1000);
+    isPull = false;
   } else {
     lastTimer = undefined;
     lastMinute = false;
     lastFiveMinutes = false;
     lastTenMinutes = false;
-    chrome.notifications.create('', {
-      title: 'Previous task has finished',
-      message: event.payload.sla,
-      iconUrl: '/icons/icon_128.png',
-      type: 'basic',
-    });
+    if(!isPull) {
+      chrome.notifications.create('', {
+        title: 'Previous task has finished',
+        message: event.payload.sla,
+        iconUrl: '/icons/icon_128.png',
+        type: 'basic',
+      });
+    }
+    isPull = true;
   }
   setNotifications(event).then();
 }
