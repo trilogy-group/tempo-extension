@@ -11,7 +11,7 @@ export enum STORAGE_TYPE {
 };
 
 export const booleanStorage = (type: STORAGE_TYPE) => ({
-  get: async () => await chrome.storage.local.get([type]).then(x => isPresent(x) ? x : false),
+  get: async () => await chrome.storage.local.get([type]).then(x => isPresent(x) ? x[type] : false),
   set: async (value: boolean) => await chrome.storage.local.set({ [type]: value }),
 })
 

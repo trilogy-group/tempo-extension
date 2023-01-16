@@ -94,20 +94,22 @@ async function setNotifications(event?: SlaEvent) {
   }
   setBadge(event);
   if(isPresent(event.payload.slaObject) && isPresent(event.payload.slaObject.h) && isPresent(event.payload.slaObject.m)) {
-    if(event.payload.slaObject.h >= 0 && event.payload.slaObject.m > 15 && (await lastTenMinutes.get() || await lastFiveMinutes.get() || await lastMinute.get())) {
+    const lastTenMinutesValue = await lastTenMinutes.get();
+    const lastFiveMinutesValue = await lastFiveMinutes.get();
+    const lastMinuteValue = await lastMinute.get();
+    if(event.payload.slaObject.h >= 0 && event.payload.slaObject.m > 10 && (lastTenMinutesValue || lastFiveMinutesValue || lastMinuteValue)) {
       await Promise.all([
-        lastMinute.set(true),
-        lastFiveMinutes.set(true),
-        lastTenMinutes.set(true),
+        lastMinute.set(false),
+        lastFiveMinutes.set(false),
+        lastTenMinutes.set(false),
       ]);
-    }
-    if (!(await lastTenMinutes.get()) && event.payload.slaObject.h < 1 && event.payload.slaObject.m < 10) {
+    } else if (!lastTenMinutesValue && event.payload.slaObject.h < 1 && event.payload.slaObject.m < 10) {
       lowTimeNotification(event);
       await lastTenMinutes.set(true);
-    } else if (!(await lastFiveMinutes.get()) && event.payload.slaObject.h < 1 && event.payload.slaObject.m < 5) {
+    } else if (!lastFiveMinutesValue && event.payload.slaObject.h < 1 && event.payload.slaObject.m < 5) {
       lowTimeNotification(event);
       await lastFiveMinutes.set(true);
-    } else if (!(await lastMinute.get()) && event.payload.slaObject.h < 1 && event.payload.slaObject.m < 1) {
+    } else if (!lastMinuteValue && event.payload.slaObject.h < 1 && event.payload.slaObject.m < 1) {
       lowTimeNotification(event);
       await lastMinute.set(true);
     }
