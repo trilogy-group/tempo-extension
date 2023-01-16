@@ -3,6 +3,18 @@ import { isPresent } from 'ts-is-present';
 import { differenceInSeconds } from 'date-fns';
 
 export const NON_SLA_EVENTS = ['pull', 'n/a'];
+export enum STORAGE_TYPE {
+  LAST_MINUTE = 'LAST_MINUTE',
+  LAST_FIVE_MINUTES = 'LAST_FIVE_MINUTES',
+  LAST_TEN_MINUTES = 'LAST_TEN_MINUTES',
+  IS_PULL = 'IS_PULL',
+};
+
+export const booleanStorage = (type: STORAGE_TYPE) => ({
+  get: async () => await chrome.storage.local.get([type]).then(x => isPresent(x) ? x : false),
+  set: async (value: boolean) => await chrome.storage.local.set({ [type]: value }),
+})
+
 const slaStorage = {
   get: async () => {
     return await chrome.storage.local.get(['sla']).then(result => {
