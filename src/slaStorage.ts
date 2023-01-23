@@ -18,8 +18,11 @@ export const booleanStorage = (type: STORAGE_TYPE) => ({
 const slaStorage = {
   get: async () => {
     return await chrome.storage.local.get(['sla']).then(result => {
-      let payload = (<SlaEvent>result.sla).payload;
-      if (isPresent(payload.slaObject) && !NON_SLA_EVENTS.includes(payload.sla)) {
+
+      let payload = (<SlaEvent|undefined>result?.sla)?.payload;
+      if(!isPresent(payload)){
+        return undefined;
+      } else if (isPresent(payload.slaObject) && !NON_SLA_EVENTS.includes(payload.sla)) {
         const lastSla = payload.slaObject;
         const slaDate = payload.createdAt!;
         const newDate = new Date();
@@ -98,23 +101,23 @@ export function updateSla(event: SlaEvent) {
   slaStorage.set(event);
 }
 
+function getInitSla() {
+  let initValue: SlaEvent = {
+    type: SlaEventType.New,
+    payload: {
+      sla: "n/a",
+      color: "black"
+    }
+  };
+  return initValue;
+}
+
 export async function getSla() {
-  return await slaStorage.get().then((count: SlaEvent) => {
-      if (typeof count === 'undefined') {
-        let initValue: SlaEvent = {
-          type: SlaEventType.New,
-          payload: {
-            sla: 'n/a',
-            color: 'black'
-          }
-        };
-        slaStorage.set(initValue, () => {
-          setupSla();
-        });
-        return initValue;
-      } else {
+  return await slaStorage.get().then((count: SlaEvent|undefined) => {
+      if (isPresent(count)) {
         return count;
       }
+      return getInitSla();
     });
 }
 
