@@ -16,13 +16,15 @@ import { isPresent } from 'ts-is-present';
   function renderHistory(history: History): string {
     return `
 <div class="history-item">
-  <div>Executor: ${history.fetchedBy}</div>
-  <div>Fetched at: ${new Date(history.fetchedAt).toLocaleString()}</div>
-  <div>Completed at: ${new Date(history.completedAt).toLocaleString()}</div>
-  <div>Status: ${history.status}</div>
-  ${ history.rejectReason ? `<div>Reject reason: ${history.rejectReason}</div>` : ''}
-  ${ history.rejectDetails ? `<div>Reject details: ${history.rejectDetails?.replaceAll(/(https?:\/\/\S+)/g, '<a target="_blank" href="$1">$1</a>')}</div>` : ''}
-  <div>Durations: ${new Date(history.durationInSeconds * 1000).toISOString().slice(11, 19)}</div>
+  <div><b>Executor:</b> ${history.fetchedBy}</div>
+  <div><b>Task Type:</b> ${history.taskType}</div>
+  <div><b>Status:</b> ${history.status}</div>
+  ${isPresent(history.qcOutcome) ? `<div><b>QC outcome:</b> ${history.qcOutcome} </div>` : '' }
+  <div><b>Fetched at:</b> ${new Date(history.fetchedAt).toLocaleString()}</div>
+  <div><b>Completed at:</b> ${new Date(history.completedAt).toLocaleString()}</div>
+  ${ history.rejectReason ? `<div><b>Reject reason:</b> ${history.rejectReason}</div>` : ''}
+  ${ history.rejectDetails ? `<div><b>Reject details:</b> ${history.rejectDetails?.replaceAll(/(https?:\/\/\S+)/g, '<a target="_blank" href="$1">$1</a>')}</div>` : ''}
+  <div><b>Duration:</b> ${new Date(history.durationInSeconds * 1000).toISOString().slice(11, 19)}</div>
 </div>`
   }
 
@@ -34,7 +36,7 @@ import { isPresent } from 'ts-is-present';
     const historyHtml = event?.payload?.data?.currentTasks?.map(renderHistoryTask).join(' ') ?? '';
     let historyItems;
     if (isPresent(historyHtml) && historyHtml.replaceAll(' ', '') !== '') {
-      historyItems = '<div  class="history-item">History: </div>' + historyHtml;
+      historyItems = '<div  class="history-item"><b>History:</b> </div>' + historyHtml;
     } else {
       historyItems = '<div  class="history-item">No history found</div>'
     }
