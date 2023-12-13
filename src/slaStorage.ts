@@ -35,7 +35,7 @@ const slaStorage = {
         payload.createdAt = newDate;
         if (lastSla.h > 0) {
           payload.sla = `${lastSla.h}ₕ${lastSla.m}ₘ`;
-        } else if (lastSla.m > 10) {
+        } else if (lastSla.m > 9) {
           payload.sla = `${lastSla.m}ₘ`;
         } else if (lastSla.m > 0) {
           payload.sla = `${lastSla.m}ₘ${lastSla.s}ₛ`;
