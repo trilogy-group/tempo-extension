@@ -33,12 +33,14 @@ const slaStorage = {
         lastSla.m = Math.floor(((secDiff / 60) % 60));
         lastSla.h = Math.floor(secDiff / 3600);
         payload.createdAt = newDate;
-        if (lastSla.h > 0) {
-          payload.sla = `${lastSla.h}ₕ${lastSla.m}ₘ`;
+        if (lastSla.h > 9) {
+          payload.sla = `${lastSla.h}ₕ`;
+        } else if (lastSla.h > 0) {
+          payload.sla = `${lastSla.h}ₕ${lastSla.m}`;
         } else if (lastSla.m > 9) {
           payload.sla = `${lastSla.m}ₘ`;
         } else if (lastSla.m > 0) {
-          payload.sla = `${lastSla.m}ₘ${lastSla.s}ₛ`;
+          payload.sla = `${lastSla.m}ₘ${lastSla.s}`;
         } else {
           payload.sla = `${lastSla.s}ₛ`;
         }
