@@ -6,34 +6,33 @@ export enum SlaEventType {
 }
 
 export interface SlaEvent {
-  type: SlaEventType,
-  payload: SlaPayload
+  type: SlaEventType;
+  payload: SlaPayload;
 }
 
 export interface HistoryEvent {
-  type: SlaEventType.History,
-  payload: HistoryObject
+  type: SlaEventType.History;
+  payload: HistoryObject;
 }
 
 export interface PingEvent {
-  type: SlaEventType.Ping,
+  type: SlaEventType.Ping;
 }
 
 interface SlaObject {
-  h: number | null
-  m: number | null
-  s: number | null
+  h: number | null;
+  m: number | null;
+  s: number | null;
 }
 
 export interface SlaPayload {
-  sla: string
-  createdAt?: Date
-  slaObject?: SlaObject
-  color?: string
-  title?: string
-  description?: string
+  sla?: string;
+  createdAt?: Date;
+  slaObject?: SlaObject;
+  color?: string;
+  title?: string;
+  description?: string;
 }
-
 
 export interface WorkProduct {
   inputArtifactURLs: string[];
@@ -85,9 +84,7 @@ export interface Task {
   __typename: string;
 }
 
-export interface History extends Task {
-
-}
+export interface History extends Task {}
 
 export interface CurrentTask {
   task: Task;
@@ -103,5 +100,3 @@ export interface Data {
 export interface HistoryObject {
   data: Data;
 }
-
-

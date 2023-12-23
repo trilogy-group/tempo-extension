@@ -16,19 +16,12 @@
     "default_title": "Tempo Extension",
     "default_popup": "popup.html"
   },
-  "permissions": [
-    "notifications",
-    "storage"
-  ],
-  "host_permissions": [ "https://app.alp-pulse.com/" ],
+  "permissions": ["notifications", "storage"],
+  "host_permissions": ["https://app.alp-pulse.com/"],
   "content_scripts": [
     {
-      "matches": [
-        "https://app.alp-pulse.com/*"
-      ],
-      "js": [
-        "contentScript.js"
-      ]
+      "matches": ["https://app.alp-pulse.com/*"],
+      "js": ["contentScript.js"]
     }
   ]
 }
